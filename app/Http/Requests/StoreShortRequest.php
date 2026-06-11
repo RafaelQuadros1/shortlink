@@ -24,7 +24,15 @@ class StoreShortRequest extends FormRequest
     {
         return [
             'url_origin' => ['required', 'url', 'max:2048'],
-            'short_code' => ['required', 'string', 'max:255'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'url_origin.required' => 'O campo URL de origem é obrigatório.',
+            'url_origin.url' => 'O campo URL de origem deve ser uma URL válida.',
+            'url_origin.max' => 'O campo URL de origem não pode exceder 2048 caracteres.',
         ];
     }
 }

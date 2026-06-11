@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Short;
 use App\Http\Requests\StoreShortRequest;
 use App\Http\Requests\UpdateShortRequest;
+use App\Models\Short;
+use App\Services\Decode;
 
 class ShortController extends Controller
 {
@@ -21,7 +22,13 @@ class ShortController extends Controller
      */
     public function store(StoreShortRequest $request)
     {
-        //
+        $short = Short::create(
+            $request->validated()
+        );
+
+        return response()->json([
+            'short_url' => $short->short_url,
+        ], 201);
     }
 
     /**
@@ -54,5 +61,13 @@ class ShortController extends Controller
     public function destroy(Short $short)
     {
         //
+    }
+
+    public function redirect(string $code)
+    {
+        $id = (new Decode)->decode($code);
+        $short = Short::findOrFail($id);
+
+        return redirect()->away($short->url_origin);
     }
 }
