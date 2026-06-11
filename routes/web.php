@@ -18,12 +18,15 @@ Route::post('/logout', function () {
 })->name('logout');
 
 Route::resource('shorts', ShortController::class)
-    ->except(['edit', 'update'])
-    ->only(['index', 'create', 'show', 'destroy'])
+    ->only(['index', 'create', 'show', 'edit', 'update', 'destroy'])
     ->middleware('auth');
 
 Route::resource('shorts', ShortController::class)
     ->only(['store']);
+
+Route::get('/link-nao-encontrado', function () {
+    return view('shorts.not-found');
+})->name('shorts.not-found');
 
 Route::get('{short_code}', [ShortController::class, 'redirect'])
     ->name('shorts.redirect');

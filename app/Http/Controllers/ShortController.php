@@ -3,13 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreShortRequest;
+use App\Http\Requests\UpdateShortRequest;
+use App\Models\Click;
 use App\Models\Short;
 use App\Services\Decode;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class ShortController extends Controller
 {
     use AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
@@ -19,6 +23,7 @@ class ShortController extends Controller
 
         $shorts = auth()->user()
             ->shorts()
+            ->withCount('clicks')
             ->latest()
             ->paginate(10)
             ->withQueryString();
@@ -32,7 +37,7 @@ class ShortController extends Controller
     public function create()
     {
         $this->authorize('create', Short::class);
-        
+
         return view('shorts.create');
     }
 
@@ -68,10 +73,54 @@ class ShortController extends Controller
         return redirect()->route('shorts.index');
     }
 
+    /**
+     * Display the specified resource.
+     */
+    public function show(Short $shorts)
+    {
+        $this->authorize('view', $shorts);
+
+        $shorts->loadCount('clicks');
+
+        return view('shorts.show', ['short' => $shorts]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Short $shorts)
+    {
+        $this->authorize('update', $shorts);
+
+        return view('shorts.edit', ['short' => $shorts]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateShortRequest $request, Short $shorts)
+    {
+        $shorts->update($request->validated());
+
+        return redirect()->route('shorts.index');
+    }
+
     public function redirect(string $code)
     {
-        $id = (new Decode)->decode($code);
-        $short = Short::findOrFail($id);
+        try {
+            $id = (new Decode)->decode($code);
+            $short = Short::findOrFail($id);
+        } catch (ModelNotFoundException) {
+            return redirect()->route('shorts.not-found');
+        }
+
+        Click::create([
+            'short_id' => $short->id,
+            'ip_address' => hash('sha256', request()->ip()),
+            'user_agent' => request()->userAgent(),
+            'referrer' => request()->header('referer'),
+            'clicked_at' => now(),
+        ]);
 
         return redirect()->away($short->url_origin);
     }

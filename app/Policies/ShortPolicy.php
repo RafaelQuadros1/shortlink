@@ -9,7 +9,7 @@ class ShortPolicy
 {
     public function view(User $user, Short $short): bool
     {
-        return $user->id === $short->user_id;
+        return $short->user_id === null || $user->id === $short->user_id;
     }
 
     public function create(User $user): bool
