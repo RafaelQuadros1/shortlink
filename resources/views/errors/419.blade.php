@@ -28,6 +28,7 @@
             Fazer login
         </a>
     </div>
+    <x-footer />
 </body>
 
 </html>

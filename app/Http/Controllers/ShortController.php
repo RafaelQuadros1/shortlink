@@ -9,6 +9,7 @@ use App\Models\Short;
 use App\Services\Decode;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class ShortController extends Controller
@@ -24,6 +25,7 @@ class ShortController extends Controller
 
         $shorts = auth()->user()
             ->shorts()
+            ->active()
             ->withCount('clicks')
             ->latest()
             ->paginate(10)
@@ -93,6 +95,10 @@ class ShortController extends Controller
     {
         $this->authorize('view', $shorts);
 
+        if ($shorts->isExpired()) {
+            return redirect()->route('shorts.not-found');
+        }
+
         $shorts->loadCount('clicks');
 
         return view('shorts.show', ['short' => $shorts]);
@@ -134,16 +140,31 @@ class ShortController extends Controller
                 'code' => $code,
                 'ip' => request()->ip(),
             ]);
+
             return redirect()->route('shorts.not-found');
         }
 
-        Click::create([
-            'short_id' => $short->id,
-            'ip_address' => hash('sha256', request()->ip()),
-            'user_agent' => request()->userAgent(),
-            'referrer' => request()->header('referer'),
-            'clicked_at' => now(),
-        ]);
+        if ($short->isExpired()) {
+            Log::info('Short link expired', [
+                'short_id' => $short->id,
+                'code' => $code,
+                'ip' => request()->ip(),
+            ]);
+
+            return redirect()->route('shorts.not-found');
+        }
+
+        $ipHash = hash('sha256', request()->ip());
+        $lockKey = "click_lock:{$short->id}:{$ipHash}";
+
+        if (Cache::lock($lockKey, 5)->get()) {
+            Click::create([
+                'short_id' => $short->id,
+                'ip_address' => $ipHash,
+                'user_agent' => request()->userAgent(),
+                'clicked_at' => now(),
+            ]);
+        }
 
         return redirect()->away($short->url_origin);
     }

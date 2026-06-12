@@ -6,19 +6,37 @@ use App\Services\EncryptId;
 use Database\Factories\ShortFactory;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable('user_id', 'url_origin', 'short_code')]
+#[Fillable('user_id', 'url_origin', 'short_code', 'expires_at')]
 class Short extends Model
 {
     /** @use HasFactory<ShortFactory> */
     use HasFactory;
 
     protected $hidden = ['created_at', 'updated_at'];
+
+    protected function casts(): array
+    {
+        return [
+            'expires_at' => 'datetime',
+        ];
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expires_at !== null && $this->expires_at->isPast();
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+    }
 
     public function user(): BelongsTo
     {
@@ -34,7 +52,6 @@ class Short extends Model
     {
         return 'id';
     }
-
 
     public function resolveRouteBinding($value, $field = null): ?static
     {

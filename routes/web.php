@@ -30,6 +30,18 @@ Route::middleware('security.headers')->group(function () {
         return view('shorts.not-found');
     })->name('shorts.not-found');
 
+    Route::get('/politica-de-privacidade', function () {
+        return view('legal.privacy');
+    })->name('legal.privacy');
+
+    Route::get('/politica-de-cookies', function () {
+        return view('legal.cookies');
+    })->name('legal.cookies');
+
+    Route::get('/termos-de-uso', function () {
+        return view('legal.terms');
+    })->name('legal.terms');
+
     // Rate limit redirect endpoint to prevent abuse
     Route::get('{short_code}', [ShortController::class, 'redirect'])
         ->name('shorts.redirect')

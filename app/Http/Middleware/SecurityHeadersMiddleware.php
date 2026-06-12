@@ -11,7 +11,7 @@ class SecurityHeadersMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -30,16 +30,21 @@ class SecurityHeadersMiddleware
         $response->header('Referrer-Policy', 'strict-origin-when-cross-origin');
 
         // Content Security Policy
-        $response->header(
-            'Content-Security-Policy',
-            "default-src 'self'; "
-            . "script-src 'self' 'unsafe-inline' cdn.tailwindcss.com; "
-            . "style-src 'self' 'unsafe-inline' cdn.tailwindcss.com; "
-            . "img-src 'self' data: https:; "
-            . "font-src 'self' data:; "
-            . "connect-src 'self'; "
-            . "frame-ancestors 'self';"
-        );
+        $csp = "default-src 'self'; "
+            ."script-src 'self' 'unsafe-inline' cdn.tailwindcss.com"
+            .(app()->environment('local') ? ' http://127.0.0.1:5173' : '')
+            .'; '
+            ."style-src 'self' 'unsafe-inline' cdn.tailwindcss.com"
+            .(app()->environment('local') ? ' http://127.0.0.1:5173' : '')
+            .'; '
+            ."img-src 'self' data: https:; "
+            ."font-src 'self' data: fonts.bunny.net; "
+            ."connect-src 'self'"
+            .(app()->environment('local') ? ' http://127.0.0.1:5173 ws://127.0.0.1:5173' : '')
+            .'; '
+            ."frame-ancestors 'self';";
+
+        $response->header('Content-Security-Policy', $csp);
 
         // HSTS (HTTP Strict Transport Security)
         if (app()->environment('production')) {

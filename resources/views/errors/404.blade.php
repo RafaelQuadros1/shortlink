@@ -28,6 +28,7 @@
             Voltar para o início
         </a>
     </div>
+    <x-footer />
 </body>
 
 </html>

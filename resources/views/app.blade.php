@@ -40,6 +40,7 @@
         @endif
 
     </main>
+    <x-footer />
 </body>
 
 </html>

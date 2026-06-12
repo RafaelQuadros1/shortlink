@@ -1,5 +1,12 @@
+import './cookie-consent';
+
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('shorten-form');
+
+    if (!form) {
+        return;
+    }
+
     const submitBtn = form.querySelector('button[type="submit"]');
 
     form.addEventListener('submit', async (e) => {
