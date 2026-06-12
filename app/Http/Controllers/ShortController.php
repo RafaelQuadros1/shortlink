@@ -9,6 +9,7 @@ use App\Models\Short;
 use App\Services\Decode;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Log;
 
 class ShortController extends Controller
 {
@@ -52,6 +53,12 @@ class ShortController extends Controller
             ])
         );
 
+        Log::channel('security')->info('Short link created', [
+            'user_id' => auth()->id(),
+            'short_id' => $short->id,
+            'ip' => $request->ip(),
+        ]);
+
         if ($request->expectsJson()) {
             return response()->json([
                 'short_url' => $short->short_url,
@@ -67,6 +74,12 @@ class ShortController extends Controller
     public function destroy(Short $shorts)
     {
         $this->authorize('delete', $shorts);
+
+        Log::channel('security')->info('Short link deleted', [
+            'user_id' => auth()->id(),
+            'short_id' => $shorts->id,
+            'ip' => request()->ip(),
+        ]);
 
         $shorts->delete();
 
@@ -102,6 +115,12 @@ class ShortController extends Controller
     {
         $shorts->update($request->validated());
 
+        Log::channel('security')->info('Short link updated', [
+            'user_id' => auth()->id(),
+            'short_id' => $shorts->id,
+            'ip' => $request->ip(),
+        ]);
+
         return redirect()->route('shorts.index');
     }
 
@@ -111,6 +130,10 @@ class ShortController extends Controller
             $id = (new Decode)->decode($code);
             $short = Short::findOrFail($id);
         } catch (ModelNotFoundException) {
+            Log::warning('Short link not found', [
+                'code' => $code,
+                'ip' => request()->ip(),
+            ]);
             return redirect()->route('shorts.not-found');
         }
 
