@@ -38,6 +38,7 @@ jobs:
   secrets-scanning:
     runs-on: ubuntu-latest
     name: Scan for Secrets
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,34 +48,9 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
           extra_args: --debug --only-verified
-
-  codeql-analysis:
-    name: CodeQL Analysis
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'php' ]
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          languages: ${{ matrix.language }}
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
 
   static-analysis:
     runs-on: ubuntu-latest
