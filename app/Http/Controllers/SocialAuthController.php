@@ -15,40 +15,82 @@ class SocialAuthController extends Controller
 {
     public function redirect(string $provider)
     {
+        // Validate provider
+        $validProviders = ['github', 'google'];
+        if (! in_array($provider, $validProviders)) {
+            Log::warning('Invalid OAuth provider attempted', ['provider' => $provider, 'ip' => request()->ip()]);
+            return back()->with('error', 'Provider inválido.');
+        }
+
         return Socialite::driver($provider)->stateless()->redirect();
     }
 
     public function callback(string $provider): RedirectResponse
     {
-        try {
-            $socialUser = Socialite::driver($provider)->stateless()->user();
-        } catch (InvalidStateException) {
-            return redirect('/')->with('error', 'A autenticação expirou. Tente novamente.');
-        } catch (MissingStateException) {
-            return redirect('/')->with('error', 'A autenticação expirou. Tente novamente.');
-        } catch (OAuthException $e) {
-            Log::error('Socialite OAuth error', ['provider' => $provider, 'error' => $e->getMessage()]);
-
-            return redirect('/')->with('error', 'Falha na autenticação com '.ucfirst($provider).'. Tente novamente.');
-        } catch (\Exception $e) {
-            Log::error('Socialite unexpected error', ['provider' => $provider, 'error' => $e->getMessage()]);
-
-            return redirect('/')->with('error', 'Erro inesperado na autenticação. Tente novamente.');
+        // Validate provider
+        $validProviders = ['github', 'google'];
+        if (! in_array($provider, $validProviders)) {
+            Log::warning('Invalid OAuth provider in callback', ['provider' => $provider, 'ip' => request()->ip()]);
+            return redirect('/')->with('error', 'Provider inválido.');
         }
 
-        $user = User::firstOrCreate(
-            [
-                'social_provider' => $provider,
-                'social_id' => $socialUser->getId(),
-            ],
-            [
-                'name' => $socialUser->getName() ?? $socialUser->getNickname(),
-                'email' => $socialUser->getEmail(),
-                'avatar' => $socialUser->getAvatar(),
-            ]
-        );
+        try {
+            $socialUser = Socialite::driver($provider)->stateless()->user();
+        } catch (\Exception $e) {
+            Log::error('OAuth authentication failed', [
+                'provider' => $provider,
+                'error' => $e->getMessage(),
+                'ip' => request()->ip(),
+            ]);
+            return redirect('/')->with('error', 'Falha na autenticação. Tente novamente.');
+        }
 
-        Auth::login($user);
+        // Validate social user data
+        if (! $socialUser->getId() || ! $socialUser->getEmail()) {
+            Log::warning('Incomplete OAuth user data', [
+                'provider' => $provider,
+                'ip' => request()->ip(),
+            ]);
+            return redirect('/')->with('error', 'Dados incompletos do provedor. Tente novamente.');
+        }
+
+        $user = User::where('social_provider', $provider)
+            ->where('social_id', $socialUser->getId())
+            ->first();
+
+        if (! $user) {
+            $user = User::where('email', $socialUser->getEmail())->first();
+
+            if ($user) {
+                $user->update([
+                    'social_id' => $socialUser->getId(),
+                    'social_provider' => $provider,
+                ]);
+                Log::info('User linked to social provider', [
+                    'user_id' => $user->id,
+                    'provider' => $provider,
+                ]);
+            } else {
+                $user = User::create([
+                    'name' => $socialUser->getName() ?? $socialUser->getNickname() ?? $socialUser->getEmail(),
+                    'email' => $socialUser->getEmail(),
+                    'social_id' => $socialUser->getId(),
+                    'social_provider' => $provider,
+                    'avatar' => $socialUser->getAvatar(),
+                ]);
+                Log::info('New user created via social auth', [
+                    'user_id' => $user->id,
+                    'provider' => $provider,
+                ]);
+            }
+        }
+
+        Auth::login($user, remember: false);
+        Log::info('User authenticated via social provider', [
+            'user_id' => $user->id,
+            'provider' => $provider,
+            'ip' => request()->ip(),
+        ]);
 
         return redirect()->intended('/');
     }

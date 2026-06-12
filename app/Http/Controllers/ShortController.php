@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreShortRequest;
 use App\Http\Requests\UpdateShortRequest;
-use App\Jobs\RecordClickJob;
+use App\Models\Click;
 use App\Models\Short;
 use App\Services\Decode;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class ShortController extends Controller
 {
@@ -46,13 +47,17 @@ class ShortController extends Controller
      */
     public function store(StoreShortRequest $request)
     {
-        $this->authorize('create', Short::class);
-
         $short = Short::create(
             array_merge($request->validated(), [
                 'user_id' => auth()->id(),
             ])
         );
+
+        Log::channel('security')->info('Short link created', [
+            'user_id' => auth()->id(),
+            'short_id' => $short->id,
+            'ip' => $request->ip(),
+        ]);
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -69,6 +74,12 @@ class ShortController extends Controller
     public function destroy(Short $shorts)
     {
         $this->authorize('delete', $shorts);
+
+        Log::channel('security')->info('Short link deleted', [
+            'user_id' => auth()->id(),
+            'short_id' => $shorts->id,
+            'ip' => request()->ip(),
+        ]);
 
         $shorts->delete();
 
@@ -102,9 +113,13 @@ class ShortController extends Controller
      */
     public function update(UpdateShortRequest $request, Short $shorts)
     {
-        $this->authorize('update', $shorts);
-
         $shorts->update($request->validated());
+
+        Log::channel('security')->info('Short link updated', [
+            'user_id' => auth()->id(),
+            'short_id' => $shorts->id,
+            'ip' => $request->ip(),
+        ]);
 
         return redirect()->route('shorts.index');
     }
@@ -113,34 +128,23 @@ class ShortController extends Controller
     {
         try {
             $id = (new Decode)->decode($code);
-        } catch (\Exception) {
+            $short = Short::findOrFail($id);
+        } catch (ModelNotFoundException) {
+            Log::warning('Short link not found', [
+                'code' => $code,
+                'ip' => request()->ip(),
+            ]);
             return redirect()->route('shorts.not-found');
         }
 
-        $url = Cache::get("short:{$id}");
+        Click::create([
+            'short_id' => $short->id,
+            'ip_address' => hash('sha256', request()->ip()),
+            'user_agent' => request()->userAgent(),
+            'referrer' => request()->header('referer'),
+            'clicked_at' => now(),
+        ]);
 
-        if ($url === null) {
-            $short = Short::find($id);
-
-            if (! $short) {
-                return redirect()->route('shorts.not-found');
-            }
-
-            $url = $short->url_origin;
-            Cache::put("short:{$id}", $url, 3600);
-        }
-
-        $ipHash = hash('sha256', request()->ip() ?? request()->userAgent() ?? 'anonymous');
-        $lockKey = "click_lock:{$id}:{$ipHash}";
-
-        if (Cache::lock($lockKey, 5)->get()) {
-            RecordClickJob::dispatch(
-                shortId: $id,
-                ipAddress: $ipHash,
-                userAgent: request()->userAgent(),
-            );
-        }
-
-        return redirect()->away($url);
+        return redirect()->away($short->url_origin);
     }
 }
