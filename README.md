@@ -1,58 +1,265 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ShortLink - URL Shortener with OAuth Authentication
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+<a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="300" alt="Laravel Logo"></a>
 </p>
 
-## About Laravel
+<p align="center">
+A modern, secure URL shortener built with Laravel 13, Tailwind CSS, and OAuth authentication.
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<p align="center">
+<a href="https://github.com/RafaelQuadros1/shortlink/actions"><img src="https://github.com/RafaelQuadros1/shortlink/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License"></a>
+</p>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## About ShortLink
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+ShortLink is a secure, feature-rich URL shortener application that enables users to:
 
-## Learning Laravel
+- Create shortened URLs for long web addresses
+- Manage their shortened links through an intuitive dashboard
+- Authenticate securely using OAuth (GitHub, Google, etc.)
+- Track link redirects with click analytics
+- Access comprehensive privacy and security features
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Built with Laravel 13 and modern web technologies, ShortLink prioritizes **security**, **performance**, and **user experience**.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## ✨ Key Features
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+- **OAuth Authentication** - Secure login with multiple OAuth providers (GitHub, Google)
+- **URL Management** - Create, view, edit, and delete shortened links
+- **Click Tracking** - Monitor redirect activity for each shortened URL
+- **Security Headers** - Comprehensive security headers (CSP, HSTS, X-Frame-Options)
+- **Rate Limiting** - Protection against abuse with intelligent rate limiting
+- **Input Validation** - Robust URL and input validation
+- **Privacy Policies** - Dedicated privacy, cookies, and terms of use pages
+- **Security Logging** - Detailed security event logging
+- **Modern UI** - Clean, responsive interface built with Tailwind CSS
+- **AI Development Ready** - Built with Laravel Boost for agent-friendly development
 
-## Agentic Development
+## 🛡️ Security
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+ShortLink implements comprehensive security measures including:
+
+- Encrypted sessions with HTTP-only cookies
+- SQL injection prevention via Eloquent ORM
+- XSS protection with input validation
+- CSRF token protection
+- Rate limiting on authentication and redirects
+- OAuth provider validation
+- Security headers middleware
+- GitHub Actions security scanning (CodeQL, composer audit, secrets scanning)
+
+For detailed security information, see [SECURITY.md](SECURITY.md) and [SECURITY_POLICY.md](SECURITY_POLICY.md).
+
+## 📋 Requirements
+
+- PHP 8.3 or higher
+- Node.js 18+ (for frontend assets)
+- npm or yarn
+- Composer
+- SQLite or MySQL (configured in `.env`)
+
+## 🚀 Quick Start
+
+### 1. Clone the Repository
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/RafaelQuadros1/shortlink.git
+cd shortlink
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Install Dependencies
 
-## Contributing
+```bash
+composer install
+npm install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Setup Environment
 
-## Code of Conduct
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 4. Database Setup
 
-## Security Vulnerabilities
+```bash
+php artisan migrate
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 5. Configure OAuth (GitHub, Google, etc.)
 
-## License
+Update your `.env` file with OAuth credentials:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```env
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+```
+
+### 6. Build Assets and Start Development
+
+```bash
+npm run build
+composer run dev
+```
+
+The application will be available at `http://localhost:8000`
+
+## 📚 Available Commands
+
+### Setup
+```bash
+composer run setup
+```
+Installs dependencies, generates app key, runs migrations, and builds frontend assets.
+
+### Development
+```bash
+composer run dev
+```
+Starts Laravel development server, queue listener, and Vite for frontend bundling (with concurrent execution).
+
+### Testing
+```bash
+composer run test
+```
+Runs the full test suite using Pest (PHP testing framework).
+
+Filter specific tests:
+```bash
+php artisan test --compact --filter=testName
+```
+
+### Code Formatting
+```bash
+vendor/bin/pint --dirty
+```
+Formats PHP code according to Laravel Pint standards.
+
+## 📁 Project Structure
+
+```
+shortlink/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/     # Request handlers
+│   │   ├── Middleware/      # HTTP middleware
+│   │   └── Requests/        # Form request validation
+│   ├── Models/              # Eloquent models (User, Short, Click)
+│   ├── Policies/            # Authorization policies
+│   ├── Services/            # Business logic (InputValidator, etc.)
+│   └── Jobs/                # Queued jobs
+├── database/
+│   ├── migrations/          # Database schemas
+│   ├── factories/           # Model factories for testing
+│   └── seeders/             # Database seeders
+├── routes/                  # Route definitions
+├── resources/
+│   ├── views/              # Blade templates
+│   └── css/                # Tailwind CSS styles
+├── tests/
+│   ├── Feature/            # Feature tests
+│   └── Unit/               # Unit tests
+├── config/                 # Configuration files
+└── public/                 # Static assets
+```
+
+## 🔐 Environment Configuration
+
+### Development (.env.example)
+```env
+APP_ENV=local
+APP_DEBUG=true
+DATABASE_URL=sqlite:./database/database.sqlite
+```
+
+### Production (.env.production)
+```env
+APP_ENV=production
+APP_DEBUG=false
+SESSION_ENCRYPT=true
+SESSION_SECURE_COOKIES=true
+SESSION_HTTP_ONLY=true
+SESSION_SAME_SITE=lax
+```
+
+For production deployment details, see [DEPLOYMENT_SECURITY_CHECKLIST.md](DEPLOYMENT_SECURITY_CHECKLIST.md).
+
+## 🧪 Testing
+
+ShortLink uses Pest for testing, providing an expressive and enjoyable testing experience.
+
+```bash
+# Run all tests
+php artisan test --compact
+
+# Run specific test file
+php artisan test tests/Feature/ShortLinkTest.php --compact
+
+# Run tests matching a pattern
+php artisan test --compact --filter=redirect
+```
+
+Test coverage includes:
+- URL shortening functionality
+- OAuth authentication flows
+- Authorization policies
+- Input validation
+- Security headers
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -am 'Add your feature'`
+4. Push to the branch: `git push origin feature/your-feature`
+5. Submit a pull request
+
+Please ensure:
+- Code follows Laravel Pint standards (`vendor/bin/pint`)
+- All tests pass (`php artisan test`)
+- Security checks pass (CodeQL, secrets scanning)
+
+## 📝 Code Style
+
+This project uses **Laravel Pint** for code formatting. Before committing, run:
+
+```bash
+vendor/bin/pint --dirty
+```
+
+## 🔒 Security
+
+If you discover a security vulnerability, please email [security@shortlink.dev](mailto:security@shortlink.dev) instead of using the issue tracker. See [SECURITY_POLICY.md](SECURITY_POLICY.md) for details.
+
+## 📄 License
+
+ShortLink is open-sourced software licensed under the [MIT License](LICENSE).
+
+## 🔗 Useful Links
+
+- [Laravel Documentation](https://laravel.com/docs)
+- [Tailwind CSS](https://tailwindcss.com)
+- [Laravel Socialite](https://laravel.com/docs/socialite)
+- [Pest Testing](https://pestphp.com)
+- [Security Guidelines](SECURITY.md)
+- [Deployment Checklist](DEPLOYMENT_SECURITY_CHECKLIST.md)
+
+## 💡 Development Notes
+
+- This project uses **Laravel Boost** for AI-powered development assistance
+- Frontend is built with **Tailwind CSS v4**
+- Testing framework is **Pest v4**
+- PHP version requirement: **8.3+**
+
+---
+
+**Made with ❤️ by Rafael Quadros**
