@@ -29,10 +29,15 @@ Route::get('/link-nao-encontrado', function () {
 })->name('shorts.not-found');
 
 Route::get('{short_code}', [ShortController::class, 'redirect'])
+    ->middleware('throttle:redirect')
     ->name('shorts.redirect');
 
 Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])
+    ->middleware('throttle:login')
+    ->whereIn('provider', ['google'])
     ->name('social.redirect');
 
 Route::get('/auth/{provider}/callback', [SocialAuthController::class, 'callback'])
+    ->middleware('throttle:login')
+    ->whereIn('provider', ['google'])
     ->name('social.callback');
