@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreShortRequest;
 use App\Http\Requests\UpdateShortRequest;
-use App\Models\Click;
+use App\Jobs\RecordClickJob;
 use App\Models\Short;
 use App\Services\Decode;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Cache;
 
 class ShortController extends Controller
 {
@@ -46,6 +46,8 @@ class ShortController extends Controller
      */
     public function store(StoreShortRequest $request)
     {
+        $this->authorize('create', Short::class);
+
         $short = Short::create(
             array_merge($request->validated(), [
                 'user_id' => auth()->id(),
@@ -100,6 +102,8 @@ class ShortController extends Controller
      */
     public function update(UpdateShortRequest $request, Short $shorts)
     {
+        $this->authorize('update', $shorts);
+
         $shorts->update($request->validated());
 
         return redirect()->route('shorts.index');
@@ -109,19 +113,34 @@ class ShortController extends Controller
     {
         try {
             $id = (new Decode)->decode($code);
-            $short = Short::findOrFail($id);
-        } catch (ModelNotFoundException) {
+        } catch (\Exception) {
             return redirect()->route('shorts.not-found');
         }
 
-        Click::create([
-            'short_id' => $short->id,
-            'ip_address' => hash('sha256', request()->ip()),
-            'user_agent' => request()->userAgent(),
-            'referrer' => request()->header('referer'),
-            'clicked_at' => now(),
-        ]);
+        $url = Cache::get("short:{$id}");
 
-        return redirect()->away($short->url_origin);
+        if ($url === null) {
+            $short = Short::find($id);
+
+            if (! $short) {
+                return redirect()->route('shorts.not-found');
+            }
+
+            $url = $short->url_origin;
+            Cache::put("short:{$id}", $url, 3600);
+        }
+
+        $ipHash = hash('sha256', request()->ip() ?? request()->userAgent() ?? 'anonymous');
+        $lockKey = "click_lock:{$id}:{$ipHash}";
+
+        if (Cache::lock($lockKey, 5)->get()) {
+            RecordClickJob::dispatch(
+                shortId: $id,
+                ipAddress: $ipHash,
+                userAgent: request()->userAgent(),
+            );
+        }
+
+        return redirect()->away($url);
     }
 }
