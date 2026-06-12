@@ -8,7 +8,7 @@ class UpdateShortRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // Authorization handled explicitly in controller
+        return $this->user()->can('update', $this->route('short'));
     }
 
     public function rules(): array

@@ -4,6 +4,11 @@ namespace App\Providers;
 
 use App\Models\Short;
 use App\Observers\ShortObserver;
+use App\Policies\ShortPolicy;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,5 +27,18 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Short::observe(ShortObserver::class);
+
+        Gate::policy(Short::class, ShortPolicy::class);
+
+        RateLimiter::for('redirect', function (Request $request) {
+            return Limit::perMinute(60)->by($request->ip() ?? $request->userAgent());
+        });
+
+        // rate limit for login attempts (social auth)
+        RateLimiter::for('login', function (Request $request) {
+            $email = (string) $request->email;
+
+            return Limit::perMinute(10)->by($email.($request->ip() ?? $request->userAgent()));
+        });
     }
 }

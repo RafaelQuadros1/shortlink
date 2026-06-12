@@ -30,6 +30,12 @@ class Short extends Model
         return $this->hasMany(Click::class);
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'id';
+    }
+
+
     public function resolveRouteBinding($value, $field = null): ?static
     {
         try {
