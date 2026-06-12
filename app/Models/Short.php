@@ -35,6 +35,7 @@ class Short extends Model
         return 'id';
     }
 
+
     public function resolveRouteBinding($value, $field = null): ?static
     {
         try {

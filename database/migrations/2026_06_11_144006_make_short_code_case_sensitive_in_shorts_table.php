@@ -12,7 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('shorts', function (Blueprint $table) {
-            $table->string('short_code', 255)->nullable()->collation('utf8mb4_bin')->change();
+            $column = $table->string('short_code', 255)->nullable();
+            if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+                $column->collation('utf8mb4_bin');
+            }
+            $column->change();
         });
     }
 
@@ -22,7 +26,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('shorts', function (Blueprint $table) {
-            $table->string('short_code', 255)->nullable()->collation('utf8mb4_general_ci')->change();
+            $column = $table->string('short_code', 255)->nullable();
+            if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+                $column->collation('utf8mb4_general_ci');
+            }
+            $column->change();
         });
     }
 };

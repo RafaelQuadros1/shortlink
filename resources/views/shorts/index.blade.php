@@ -39,7 +39,7 @@
                             <div class="flex items-center gap-2">
                                 <a href="{{ route('shorts.show', $short->encrypted_id) }}"
                                     class="text-white font-medium text-sm truncate hover:underline">{{ $short->short_url }}</a>
-                                <button onclick="copyToClipboard(this, '{{ $short->short_url }}')"
+                                <button onclick="copyToClipboard(this, @js($short->short_url))"
                                     class="text-white/40 hover:text-white transition-colors cursor-pointer shrink-0"
                                     title="Copiar">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"

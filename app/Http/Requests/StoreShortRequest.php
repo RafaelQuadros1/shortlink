@@ -12,8 +12,7 @@ class StoreShortRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Require authentication to create short links
-        return auth()->check();
+        return true; // Authorization handled explicitly in controller
     }
 
     /**

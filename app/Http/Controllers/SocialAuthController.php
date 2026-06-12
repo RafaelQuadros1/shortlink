@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
+use Laravel\Socialite\Two\MissingStateException;
+use Laravel\Socialite\Two\OAuthException;
 
 class SocialAuthController extends Controller
 {
@@ -21,7 +25,7 @@ class SocialAuthController extends Controller
         return Socialite::driver($provider)->stateless()->redirect();
     }
 
-    public function callback(string $provider)
+    public function callback(string $provider): RedirectResponse
     {
         // Validate provider
         $validProviders = ['github', 'google'];
