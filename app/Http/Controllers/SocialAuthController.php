@@ -3,8 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
+use Laravel\Socialite\Two\MissingStateException;
+use Laravel\Socialite\Two\OAuthException;
 
 class SocialAuthController extends Controller
 {
@@ -13,34 +18,37 @@ class SocialAuthController extends Controller
         return Socialite::driver($provider)->stateless()->redirect();
     }
 
-    public function callback(string $provider)
+    public function callback(string $provider): RedirectResponse
     {
-        $socialUser = Socialite::driver($provider)->stateless()->user();
+        try {
+            $socialUser = Socialite::driver($provider)->stateless()->user();
+        } catch (InvalidStateException) {
+            return redirect('/')->with('error', 'A autenticação expirou. Tente novamente.');
+        } catch (MissingStateException) {
+            return redirect('/')->with('error', 'A autenticação expirou. Tente novamente.');
+        } catch (OAuthException $e) {
+            Log::error('Socialite OAuth error', ['provider' => $provider, 'error' => $e->getMessage()]);
 
-        $user = User::where('social_provider', $provider)
-            ->where('social_id', $socialUser->getId())
-            ->first();
+            return redirect('/')->with('error', 'Falha na autenticação com '.ucfirst($provider).'. Tente novamente.');
+        } catch (\Exception $e) {
+            Log::error('Socialite unexpected error', ['provider' => $provider, 'error' => $e->getMessage()]);
 
-        if (! $user) {
-            $user = User::where('email', $socialUser->getEmail())->first();
-
-            if ($user) {
-                $user->update([
-                    'social_id' => $socialUser->getId(),
-                    'social_provider' => $provider,
-                ]);
-            } else {
-                $user = User::create([
-                    'name' => $socialUser->getName() ?? $socialUser->getNickname(),
-                    'email' => $socialUser->getEmail(),
-                    'social_id' => $socialUser->getId(),
-                    'social_provider' => $provider,
-                    'avatar' => $socialUser->getAvatar(),
-                ]);
-            }
+            return redirect('/')->with('error', 'Erro inesperado na autenticação. Tente novamente.');
         }
 
-        Auth::login($user, remember: true);
+        $user = User::firstOrCreate(
+            [
+                'social_provider' => $provider,
+                'social_id' => $socialUser->getId(),
+            ],
+            [
+                'name' => $socialUser->getName() ?? $socialUser->getNickname(),
+                'email' => $socialUser->getEmail(),
+                'avatar' => $socialUser->getAvatar(),
+            ]
+        );
+
+        Auth::login($user);
 
         return redirect()->intended('/');
     }
