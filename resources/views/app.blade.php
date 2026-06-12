@@ -29,6 +29,11 @@
             <p class="text-white/50 text-xs sm:text-sm text-center">Transforme links longos em links curtos e
                 rastreáveis</p>
         </div>
+        @if (session('error'))
+            <div class="w-full max-w-90 sm:max-w-112.5 lg:w-150 bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-3 text-red-400 text-sm text-center">
+                {{ session('error') }}
+            </div>
+        @endif
         <x-form />
         @if (!auth()->check())
             <x-socialite />

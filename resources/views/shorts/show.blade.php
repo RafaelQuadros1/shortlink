@@ -55,7 +55,7 @@
                 <span class="text-white/40 text-xs uppercase tracking-wider">Link curto</span>
                 <div class="flex items-center gap-3">
                     <span class="text-white font-semibold text-lg tracking-tight">{{ $short->short_url }}</span>
-                    <button onclick="copyToClipboard(this, '{{ $short->short_url }}')"
+                    <button onclick="copyToClipboard(this, @js($short->short_url))"
                         class="shrink-0 p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors cursor-pointer group"
                         title="Copiar">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
