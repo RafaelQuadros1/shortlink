@@ -16,6 +16,10 @@ class Encode
 
     public function code(int $number): string
     {
+        if ($number < 0) {
+            throw new \InvalidArgumentException('Number must be non-negative.');
+        }
+
         $code = '';
 
         if ($number == 0) {

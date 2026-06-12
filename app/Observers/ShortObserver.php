@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Short;
 use App\Services\Encode;
+use Illuminate\Support\Facades\Cache;
 
 class ShortObserver
 {
@@ -14,5 +15,15 @@ class ShortObserver
                 'short_code' => (new Encode)->code($short->id),
             ]);
         }
+    }
+
+    public function updated(Short $short): void
+    {
+        Cache::forget("short:{$short->id}");
+    }
+
+    public function deleted(Short $short): void
+    {
+        Cache::forget("short:{$short->id}");
     }
 }

@@ -12,7 +12,7 @@ class StoreShortRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return true; // Authorization handled explicitly in controller
     }
 
     /**
