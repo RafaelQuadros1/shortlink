@@ -1,0 +1,21 @@
+level: max
+
+paths:
+  - app
+
+excludePaths:
+  - database
+  - tests
+  - bootstrap
+  - storage
+
+checkMissingIterableValueType: false
+
+reporting:
+  level: max
+  printUnmatched: false
+
+parameters:
+  universalObjectCrackingFunctionCallTemplates:
+    - sprintf
+    - vsprintf
