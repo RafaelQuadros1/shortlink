@@ -153,4 +153,8 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Run tests: `php artisan test --compact` or filter: `php artisan test --compact --filter=testName`.
 - Do NOT delete tests without approval.
 
+## Git Workflow
+
+- Nunca fazer push direto na branch main. Sempre criar uma branch feature e subir um PR.
+
 </laravel-boost-guidelines>
