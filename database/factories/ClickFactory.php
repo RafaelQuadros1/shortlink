@@ -19,7 +19,6 @@ class ClickFactory extends Factory
             'short_id' => Short::factory(),
             'ip_address' => hash('sha256', $this->faker->ipv4()),
             'user_agent' => $this->faker->userAgent(),
-            'referrer' => $this->faker->optional(0.7)->url(),
             'clicked_at' => $this->faker->dateTimeBetween('-30 days', 'now'),
         ];
     }
