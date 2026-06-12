@@ -20,7 +20,13 @@ class Decode
         $length = strlen($code);
 
         for ($i = 0; $i < $length; $i++) {
-            $result = $result * $this->base + strpos($this->alphabet, $code[$i]);
+            $position = strpos($this->alphabet, $code[$i]);
+
+            if ($position === false) {
+                throw new \InvalidArgumentException("Invalid character in code: {$code[$i]}");
+            }
+
+            $result = $result * $this->base + $position;
         }
 
         return $result;

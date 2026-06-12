@@ -2,23 +2,17 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
+
 class Alphabet
 {
     private const ORIGINAL = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-    private string $secret;
-
-    private string $encrypted;
-
-    public function __construct()
-    {
-        $this->secret = base64_decode(substr(config('app.key'), 7));
-        $this->encrypted = $this->shuffle(self::ORIGINAL);
-    }
+    private const CACHE_KEY = 'alphabet:encrypted';
 
     public function getEncrypted(): string
     {
-        return $this->encrypted;
+        return Cache::remember(self::CACHE_KEY, now()->addYear(), fn () => $this->shuffle(self::ORIGINAL));
     }
 
     public function getOriginal(): string
@@ -28,11 +22,12 @@ class Alphabet
 
     private function shuffle(string $alphabet): string
     {
+        $secret = base64_decode(substr(config('app.key'), 7));
         $chars = str_split($alphabet);
         $seed = 0;
 
-        for ($i = 0; $i < strlen($this->secret); $i++) {
-            $seed = ($seed * 31 + ord($this->secret[$i])) & 0x7FFFFFFF;
+        for ($i = 0; $i < strlen($secret); $i++) {
+            $seed = ($seed * 31 + ord($secret[$i])) & 0x7FFFFFFF;
         }
 
         for ($i = count($chars) - 1; $i > 0; $i--) {
