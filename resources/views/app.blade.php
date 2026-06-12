@@ -17,11 +17,23 @@
     @endif
 </head>
 
-<body
-    class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-[#1b1b18] flex p-6 lg:p-8 items-center lg:justify-center min-h-screen flex-col">
-    <main class="w-full lg:w-150">
-        <h1 class="text-4xl font-bold mb-6 text-center">ShortLink</h1>
+<body class="bg-[#0a0a0a] text-white flex flex-col min-h-screen">
+    <x-header />
+    <main
+        class="w-full max-w-90 sm:max-w-112.5 lg:w-150 mx-auto flex-1 flex flex-col items-center justify-center gap-4 sm:gap-6">
+        <div class="flex flex-col items-center gap-2">
+            <div class="flex items-center gap-2">
+                @include('icons.link')
+                <span class="text-lg sm:text-xl font-semibold text-white">encurta.ai</span>
+            </div>
+            <p class="text-white/50 text-xs sm:text-sm text-center">Transforme links longos em links curtos e
+                rastreáveis</p>
+        </div>
         <x-form />
+        @if (!auth()->check())
+            <x-socialite />
+        @endif
+
     </main>
 </body>
 
