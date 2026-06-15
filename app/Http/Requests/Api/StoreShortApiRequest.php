@@ -15,7 +15,7 @@ class StoreShortApiRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'url_origin' => ['required', 'url', 'max:2048'],
+            'url_origin' => ['required', 'url', 'max:4096'],
         ];
     }
 
@@ -23,9 +23,10 @@ class StoreShortApiRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $url = $this->input('url_origin');
-            $url && ! InputValidator::validateUrl($url)
-                ? $validator->errors()->add('url_origin', 'The URL contains a blocked domain.')
-                : null;
+            if ($url && ! InputValidator::validateUrl($url)) {
+                $reason = InputValidator::getUrlValidationError($url);
+                $validator->errors()->add('url_origin', $reason);
+            }
         });
     }
 }

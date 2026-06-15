@@ -1,9 +1,5 @@
 <div class="w-full">
-    @error('url_origin')
-        <div id="error" class="mb-4 px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-lg">
-            {{ $message }}
-        </div>
-    @enderror
+    <div id="ajax-error" class="hidden mb-4 px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-lg"></div>
     <form id="shorten-form" action="{{ route('shorts.store') }}" method="POST" class="w-full
                  bg-white/6 backdrop-blur-2xl
                  border border-white/12
