@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ShortController;
 use App\Http\Controllers\SocialAuthController;
 use Illuminate\Support\Facades\Auth;
@@ -22,9 +23,9 @@ Route::middleware('security.headers')->group(function () {
         ->only(['index', 'create', 'show', 'edit', 'update', 'destroy'])
         ->middleware('auth');
 
-    Route::resource('shorts', ShortController::class)
-        ->only(['store'])
-        ->middleware('throttle:30,1');
+    Route::post('/shorts', [ShortController::class, 'store'])
+        ->name('shorts.store')
+        ->middleware('throttle:short-store');
 
     Route::get('/link-nao-encontrado', function () {
         return view('shorts.not-found');
@@ -41,6 +42,16 @@ Route::middleware('security.headers')->group(function () {
     Route::get('/termos-de-uso', function () {
         return view('legal.terms');
     })->name('legal.terms');
+
+    Route::get('/api/exemplo', function () {
+        return view('api.example');
+    })->name('api.example');
+
+    Route::middleware('auth')->prefix('configuracoes')->name('settings.')->group(function () {
+        Route::get('/api-keys', [SettingsController::class, 'apiKeys'])->name('api-keys');
+        Route::post('/api-keys', [SettingsController::class, 'storeApiKey'])->name('api-keys.store');
+        Route::delete('/api-keys/{apiKey}', [SettingsController::class, 'destroyApiKey'])->name('api-keys.destroy');
+    });
 
     // Rate limit redirect endpoint to prevent abuse
     Route::get('{short_code}', [ShortController::class, 'redirect'])

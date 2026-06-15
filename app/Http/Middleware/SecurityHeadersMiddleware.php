@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Vite;
 use Symfony\Component\HttpFoundation\Response;
 
 class SecurityHeadersMiddleware
@@ -15,6 +16,11 @@ class SecurityHeadersMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
+        Vite::useCspNonce();
+
+        $nonce = Vite::cspNonce();
+        view()->share('cspNonce', $nonce);
+
         $response = $next($request);
 
         // Prevent clickjacking attacks
@@ -31,10 +37,10 @@ class SecurityHeadersMiddleware
 
         // Content Security Policy
         $csp = "default-src 'self'; "
-            ."script-src 'self' 'unsafe-inline' cdn.tailwindcss.com"
+            ."script-src 'self' 'nonce-{$nonce}' cdn.tailwindcss.com"
             .(app()->environment('local') ? ' http://127.0.0.1:5173' : '')
             .'; '
-            ."style-src 'self' 'unsafe-inline' cdn.tailwindcss.com"
+            ."style-src 'self' 'nonce-{$nonce}' cdn.tailwindcss.com"
             .(app()->environment('local') ? ' http://127.0.0.1:5173' : '')
             .'; '
             ."img-src 'self' data: https:; "

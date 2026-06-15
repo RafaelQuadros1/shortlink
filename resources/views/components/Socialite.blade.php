@@ -6,7 +6,7 @@
         <span class="grow border-t border-white/10"></span>
     </div>
     <div class="flex flex-row justify-center items-center">
-        <h3 class="text-white/40 text-xs sm:text-sm font-medium">Faça login para prolongar a duração do link</h3>
+        <h3 class="text-white/40 text-xs sm:text-sm font-medium">Faça login para o link não expirar em 30 dias</h3>
     </div>
     <div class="flex justify-center mt-4">
         <a href="{{ route('social.redirect', 'google') }}" class="flex items-center justify-center gap-2 px-4 py-2

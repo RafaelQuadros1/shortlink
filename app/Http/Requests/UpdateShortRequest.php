@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Services\InputValidator;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateShortRequest extends FormRequest
@@ -16,6 +17,16 @@ class UpdateShortRequest extends FormRequest
         return [
             'url_origin' => ['required', 'url', 'max:2048'],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $url = $this->input('url_origin');
+            $url && ! InputValidator::validateUrl($url)
+                ? $validator->errors()->add('url_origin', 'A URL contém um domínio não permitido.')
+                : null;
+        });
     }
 
     public function messages(): array

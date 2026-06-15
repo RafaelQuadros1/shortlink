@@ -24,46 +24,42 @@ class InputValidator
     }
 
     /**
-     * Validate URL format and security
+     * Validate URL format and security (SSRF prevention)
      */
     public static function validateUrl(string $url): bool
     {
-        // Check URL format
         if (! filter_var($url, FILTER_VALIDATE_URL)) {
             return false;
         }
 
-        // Parse URL
         $parsed = parse_url($url);
 
-        if (! $parsed || ! isset($parsed['scheme'])) {
+        if (! $parsed || ! isset($parsed['scheme'], $parsed['host'])) {
             return false;
         }
 
-        // Only allow http and https schemes
-        if (! in_array($parsed['scheme'], ['http', 'https'])) {
+        if (! in_array($parsed['scheme'], ['http', 'https'], true)) {
             return false;
         }
 
-        // Prevent localhost and private IP addresses
-        if (isset($parsed['host'])) {
-            $host = $parsed['host'];
-            $blacklist = [
-                'localhost',
-                '127.0.0.1',
-                '0.0.0.0',
-                '::1',
-            ];
+        $host = $parsed['host'];
 
-            if (in_array($host, $blacklist)) {
+        $blockedHosts = [
+            'localhost',
+            '127.0.0.1',
+            '0.0.0.0',
+            '::1',
+            '169.254.169.254',
+            'metadata.google.internal',
+        ];
+
+        if (in_array(strtolower($host), $blockedHosts, true)) {
+            return false;
+        }
+
+        if (filter_var($host, FILTER_VALIDATE_IP)) {
+            if (! filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
                 return false;
-            }
-
-            // Check for private IP ranges
-            if (! filter_var($host, FILTER_VALIDATE_IP, [
-                'flags' => FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE,
-            ])) {
-                // If it's not an IP or it's a private IP, continue validation
             }
         }
 

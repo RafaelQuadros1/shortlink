@@ -41,6 +41,10 @@
                         placeholder="https://exemplo.com/pagina/muito/longa?utm_source" required
                         class="w-full px-2 sm:px-2 py-2 sm:py-2 bg-white/5 border border-white/10 rounded-xl text-white text-sm sm:text-sm placeholder:text-white/25 focus:outline-none focus:bg-white/9 focus:border-white/28 transition-all duration-200">
                 </div>
+
+                <div aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;overflow:hidden;">
+                    <input type="text" name="website" tabindex="-1" autocomplete="off">
+                </div>
             </div>
 
             <button type="submit"

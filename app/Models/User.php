@@ -34,4 +34,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Short::class);
     }
+
+    public function apiKeys()
+    {
+        return $this->hasMany(ApiKey::class);
+    }
 }

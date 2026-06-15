@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateShortRequest;
 use App\Models\Click;
 use App\Models\Short;
 use App\Services\Decode;
+use App\Services\InputValidator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Cache;
@@ -23,12 +24,14 @@ class ShortController extends Controller
     {
         $this->authorize('viewAny', Short::class);
 
+        $perPage = min((int) request()->input('per_page', 10), 10);
+
         $shorts = auth()->user()
             ->shorts()
             ->active()
             ->withCount('clicks')
             ->latest()
-            ->paginate(10)
+            ->paginate($perPage)
             ->withQueryString();
 
         return view('shorts.index', compact('shorts'));
@@ -61,9 +64,10 @@ class ShortController extends Controller
             'ip' => $request->ip(),
         ]);
 
-        if ($request->expectsJson()) {
+        if ($request->expectsJson() || ! auth()->check()) {
             return response()->json([
                 'short_url' => $short->short_url,
+                'expires_at' => $short->expires_at?->toISOString(),
             ], 201);
         }
 
@@ -148,6 +152,15 @@ class ShortController extends Controller
             Log::info('Short link expired', [
                 'short_id' => $short->id,
                 'code' => $code,
+                'ip' => request()->ip(),
+            ]);
+
+            return redirect()->route('shorts.not-found');
+        }
+
+        if (! InputValidator::validateUrl($short->url_origin)) {
+            Log::warning('Short link blocked at redirect — invalid URL', [
+                'short_id' => $short->id,
                 'ip' => request()->ip(),
             ]);
 
