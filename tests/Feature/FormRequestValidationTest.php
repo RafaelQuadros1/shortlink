@@ -24,11 +24,11 @@ it('validates url_origin must be a valid URL on store', function () {
         ->assertSessionHasErrors('url_origin', 'O campo URL de origem deve ser uma URL válida.');
 });
 
-it('validates url_origin max 2048 characters on store', function () {
+it('validates url_origin max 4096 characters on store', function () {
     actingAs($this->user)
-        ->post('/shorts', ['url_origin' => 'https://example.com/'.str_repeat('a', 2049)])
+        ->post('/shorts', ['url_origin' => 'https://example.com/'.str_repeat('a', 4097)])
         ->assertSessionHasErrors('url_origin')
-        ->assertSessionHasErrors('url_origin', 'O campo URL de origem não pode exceder 2048 caracteres.');
+        ->assertSessionHasErrors('url_origin', 'O campo URL de origem não pode exceder 4096 caracteres.');
 });
 
 it('accepts valid URL on store', function () {
@@ -57,12 +57,12 @@ it('validates url_origin must be a valid URL on update', function () {
         ->assertSessionHasErrors('url_origin', 'Informe uma URL válida.');
 });
 
-it('validates url_origin max 2048 characters on update', function () {
+it('validates url_origin max 4096 characters on update', function () {
     $short = Short::factory()->for($this->user)->create();
     $encryptedId = (new EncryptId)->encrypt($short->id);
 
     actingAs($this->user)
-        ->put("/shorts/{$encryptedId}", ['url_origin' => 'https://example.com/'.str_repeat('a', 2049)])
+        ->put("/shorts/{$encryptedId}", ['url_origin' => 'https://example.com/'.str_repeat('a', 4097)])
         ->assertSessionHasErrors('url_origin')
-        ->assertSessionHasErrors('url_origin', 'A URL não pode ter mais de 2048 caracteres.');
+        ->assertSessionHasErrors('url_origin', 'A URL não pode ter mais de 4096 caracteres.');
 });

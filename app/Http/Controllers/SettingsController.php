@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\RevokeApiKeyAction;
 use App\Models\ApiKey;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class SettingsController extends Controller
 {
@@ -31,28 +31,16 @@ class SettingsController extends Controller
             'key' => $key['hashed'],
         ]);
 
-        Log::channel('security')->info('API key created', [
-            'user_id' => auth()->id(),
-            'ip' => $request->ip(),
-        ]);
-
         return redirect()->route('settings.api-keys')
             ->with('plain_key', $key['plain'])
             ->with('success', 'API key criada com sucesso.');
     }
 
-    public function destroyApiKey(ApiKey $apiKey)
+    public function destroyApiKey(ApiKey $apiKey, RevokeApiKeyAction $action)
     {
-        if ($apiKey->user_id !== auth()->id()) {
-            abort(403);
-        }
+        $this->authorize('delete', $apiKey);
 
-        $apiKey->delete();
-
-        Log::channel('security')->info('API key revoked', [
-            'user_id' => auth()->id(),
-            'ip' => request()->ip(),
-        ]);
+        $action->execute($apiKey);
 
         return redirect()->route('settings.api-keys')
             ->with('success', 'API key revogada.');
