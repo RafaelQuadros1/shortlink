@@ -20,7 +20,7 @@
 <body class="bg-[#0a0a0a] text-white flex flex-col min-h-screen">
     <x-header />
     <main
-        class="w-full max-w-90 sm:max-w-112.5 lg:w-150 mx-auto flex-1 flex flex-col items-center justify-center gap-4 sm:gap-6">
+        class="w-full max-w-100 sm:max-w-200 lg:w-150 mx-auto flex-1 flex flex-col items-center justify-center gap-4 sm:gap-6">
         <div class="flex flex-col items-center gap-2">
             <div class="flex items-center gap-2">
                 @include('icons.link')
@@ -37,6 +37,8 @@
         <x-form />
         @if (!auth()->check())
             <x-socialite />
+        @else
+            <x-example />
         @endif
 
     </main>

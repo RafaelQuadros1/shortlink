@@ -13,14 +13,17 @@
                 </a>
             </div>
         @else
-            <div class="flex items-center gap-3">
+            <div class="flex justify-center items-center gap-3">
                 <a href="{{ route('shorts.index') }}" class="text-white/70 hover:text-white transition-colors">
                     @include('icons.menu')
                 </a>
             </div>
         @endif
 
-        <div class="flex items-center gap-3">
+        <div class="flex justify-center items-center gap-3">
+            <a href="{{ route('settings.api-keys') }}" class="text-white/70 hover:text-white transition-colors">
+                @include('icons.settings')
+            </a>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="text-white/70 hover:text-white transition-colors cursor-pointer">

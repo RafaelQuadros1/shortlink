@@ -96,7 +96,7 @@
 
     </main>
 
-    <script>
+    <script nonce="{{ $cspNonce }}">
         function copyToClipboard(button, text) {
             navigator.clipboard.writeText(text).then(() => {
                 const originalHTML = button.innerHTML;
