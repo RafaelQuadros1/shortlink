@@ -2,7 +2,6 @@
 
 use App\Models\Short;
 use App\Models\User;
-use App\Services\EncryptId;
 
 use function Pest\Laravel\actingAs;
 
@@ -21,7 +20,7 @@ describe('ShortController@index', function () {
 describe('ShortController@store', function () {
     it('creates a new short and returns JSON', function () {
         actingAs($this->user)
-            ->post('/shorts', ['url_origin' => 'https://example.com'])
+            ->postJson('/shorts', ['url_origin' => 'https://example.com'])
             ->assertCreated()
             ->assertJsonStructure(['short_url']);
     });

@@ -156,5 +156,16 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 ## Git Workflow
 
 - Nunca fazer push direto na branch main. Sempre criar uma branch feature e subir um PR.
+- Use mensagens de commit claras e descritivas, seguindo o formato: `feat: add user authentication`, `fix: resolve login bug`, `docs: update API documentation`.
+- Antes de criar um PR, certifique-se de que todos os testes estão passando e que o código está formatado corretamente com Laravel Pint.
+- Ao criar um PR, forneça uma descrição detalhada das mudanças feitas, o motivo das mudanças e quaisquer instruções de teste necessárias para os revisores.
+- Durante a revisão de código, seja respeitoso e construtivo, focando em melhorias e soluções em vez de críticas pessoais. Sempre busque entender o contexto das mudanças antes de sugerir alterações.
+- Após a aprovação do PR, certifique-se de que a branch seja mesclada corretamente e que o ambiente de produção seja atualizado conforme necessário, seguindo as práticas recomendadas de implantação.
+- Evite criar branches de longa duração. Mantenha as branches pequenas e focadas para facilitar a revisão e integração.
+- Se um PR precisar de mudanças significativas, considere criar uma nova branch a partir da branch original para implementar as mudanças, mantendo o histórico de commits limpo e organizado.
+- Sempre sincronize sua branch com a branch main antes de criar um PR para evitar conflitos de merge e garantir que seu código esteja atualizado com as últimas mudanças.
+- Use tags de PR para categorizar as mudanças, como `bug`, `feature`, `documentation`, etc., para facilitar a triagem e revisão por parte dos mantenedores do projeto.
+- Se um PR for rejeitado, revise o feedback cuidadosamente, faça as alterações necessárias e reenvie o PR para revisão. Não desanime com feedback negativo; use-o como uma oportunidade de aprendizado e crescimento como desenvolvedor.
+- Mantenha uma comunicação clara e aberta com os revisores de código, respondendo a perguntas e fornecendo esclarecimentos conforme necessário para garantir que as mudanças sejam compreendidas e aprovadas de maneira eficiente.
 
 </laravel-boost-guidelines>

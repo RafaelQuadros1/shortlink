@@ -1,9 +1,8 @@
 <?php
 
 use App\Models\Short;
-use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 
 uses(RefreshDatabase::class);
 
@@ -23,7 +22,7 @@ it('redirects in under 500ms', function () {
 });
 
 it('handles 2000 sequential redirects efficiently', function () {
-    RateLimiter::for('redirect', fn () => Limit::none());
+    $this->withoutMiddleware(ThrottleRequests::class);
 
     $shorts = Short::factory()->count(2000)->create();
 
