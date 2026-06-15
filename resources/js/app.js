@@ -5,9 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (form) {
         const submitBtn = form.querySelector('button[type="submit"]');
+        const errorEl = document.getElementById('ajax-error');
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            errorEl.classList.add('hidden');
+            errorEl.textContent = '';
 
             const originalText = submitBtn.textContent;
             submitBtn.textContent = 'Encurtando...';
@@ -29,7 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(data.message || 'Erro ao encurtar o link.');
+                    const errors = data.errors || {};
+                    const messages = Object.values(errors).flat();
+                    throw new Error(messages.length > 0 ? messages[0] : (data.message || 'Erro ao encurtar o link.'));
                 }
 
                 form.reset();
@@ -41,6 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     submitBtn.textContent = originalText;
                 }, 2000);
             } catch (err) {
+                errorEl.textContent = err.message;
+                errorEl.classList.remove('hidden');
                 submitBtn.textContent = originalText;
             } finally {
                 submitBtn.disabled = false;

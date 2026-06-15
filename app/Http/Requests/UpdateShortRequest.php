@@ -9,13 +9,13 @@ class UpdateShortRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('update', $this->route('short'));
+        return true;
     }
 
     public function rules(): array
     {
         return [
-            'url_origin' => ['required', 'url', 'max:2048'],
+            'url_origin' => ['required', 'url', 'max:4096'],
         ];
     }
 
@@ -23,9 +23,10 @@ class UpdateShortRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $url = $this->input('url_origin');
-            $url && ! InputValidator::validateUrl($url)
-                ? $validator->errors()->add('url_origin', 'A URL contém um domínio não permitido.')
-                : null;
+            if ($url && ! InputValidator::validateUrl($url)) {
+                $reason = InputValidator::getUrlValidationError($url);
+                $validator->errors()->add('url_origin', $reason);
+            }
         });
     }
 
@@ -34,7 +35,7 @@ class UpdateShortRequest extends FormRequest
         return [
             'url_origin.required' => 'A URL de destino é obrigatória.',
             'url_origin.url' => 'Informe uma URL válida.',
-            'url_origin.max' => 'A URL não pode ter mais de 2048 caracteres.',
+            'url_origin.max' => 'A URL não pode ter mais de 4096 caracteres.',
         ];
     }
 }

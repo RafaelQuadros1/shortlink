@@ -15,7 +15,7 @@ class StoreShortRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'url_origin' => ['required', 'url', 'max:2048'],
+            'url_origin' => ['required', 'url', 'max:4096'],
             'website' => ['nullable', 'max:0'],
         ];
     }
@@ -24,9 +24,10 @@ class StoreShortRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $url = $this->input('url_origin');
-            $url && ! InputValidator::validateUrl($url)
-                ? $validator->errors()->add('url_origin', 'A URL contém um domínio não permitido.')
-                : null;
+            if ($url && ! InputValidator::validateUrl($url)) {
+                $reason = InputValidator::getUrlValidationError($url);
+                $validator->errors()->add('url_origin', $reason);
+            }
         });
     }
 
@@ -34,8 +35,8 @@ class StoreShortRequest extends FormRequest
     {
         return [
             'url_origin.required' => 'O campo URL de origem é obrigatório.',
-            'url_origin.url' => 'O campo URL de origem deve ser uma URL válida.',
-            'url_origin.max' => 'O campo URL de origem não pode exceder 2048 caracteres.',
+            'url_origin.url' => 'Informe uma URL válida.',
+            'url_origin.max' => 'O campo URL de origem não pode exceder 4096 caracteres.',
             'website.max' => 'Formulário inválido.',
         ];
     }
