@@ -3,6 +3,9 @@
 use App\Models\ApiKey;
 use App\Models\Short;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->user = User::factory()->create();
@@ -10,6 +13,7 @@ beforeEach(function () {
     ApiKey::factory()->create([
         'user_id' => $this->user->id,
         'key' => $this->key['hashed'],
+        'key_lookup' => $this->key['key_lookup'],
     ]);
 });
 
@@ -19,6 +23,7 @@ describe('GET /api/v1/shorts', function () {
         ApiKey::factory()->create([
             'user_id' => $this->user->id,
             'key' => $key['hashed'],
+            'key_lookup' => $key['key_lookup'],
         ]);
 
         Short::factory()->count(3)->create(['user_id' => $this->user->id]);
@@ -52,6 +57,7 @@ describe('GET /api/v1/shorts', function () {
         ApiKey::factory()->create([
             'user_id' => $this->user->id,
             'key' => $key['hashed'],
+            'key_lookup' => $key['key_lookup'],
             'expires_at' => now()->subDay(),
         ]);
 
@@ -67,6 +73,7 @@ describe('GET /api/v1/shorts', function () {
         ApiKey::factory()->create([
             'user_id' => $otherUser->id,
             'key' => $otherKey['hashed'],
+            'key_lookup' => $otherKey['key_lookup'],
         ]);
 
         Short::factory()->count(3)->create(['user_id' => $this->user->id]);
@@ -93,6 +100,39 @@ describe('GET /api/v1/shorts', function () {
             ])
             ->assertJsonCount(10, 'data');
     });
+
+    it('filters shorts by search term', function () {
+        Short::factory()->create(['user_id' => $this->user->id, 'url_origin' => 'https://google.com']);
+        Short::factory()->create(['user_id' => $this->user->id, 'url_origin' => 'https://github.com']);
+
+        $this->getJson('/api/v1/shorts?search=google', [
+            'X-API-Key' => $this->key['plain'],
+        ])
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.url_origin', 'https://google.com');
+    });
+
+    it('sorts shorts by created_at', function () {
+        Short::factory()->create(['user_id' => $this->user->id, 'created_at' => now()->subDay()]);
+        Short::factory()->create(['user_id' => $this->user->id, 'created_at' => now()]);
+
+        $this->getJson('/api/v1/shorts?sort=created_at&order=desc', [
+            'X-API-Key' => $this->key['plain'],
+        ])
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
+    });
+
+    it('limits per_page to minimum of 1', function () {
+        Short::factory()->count(3)->create(['user_id' => $this->user->id]);
+
+        $this->getJson('/api/v1/shorts?per_page=-1', [
+            'X-API-Key' => $this->key['plain'],
+        ])
+            ->assertOk()
+            ->assertJsonCount(1, 'data');
+    });
 });
 
 describe('POST /api/v1/shorts', function () {
@@ -101,6 +141,7 @@ describe('POST /api/v1/shorts', function () {
         ApiKey::factory()->create([
             'user_id' => $this->user->id,
             'key' => $key['hashed'],
+            'key_lookup' => $key['key_lookup'],
         ]);
 
         $this->postJson('/api/v1/shorts', [
@@ -124,6 +165,7 @@ describe('POST /api/v1/shorts', function () {
         ApiKey::factory()->create([
             'user_id' => $this->user->id,
             'key' => $key['hashed'],
+            'key_lookup' => $key['key_lookup'],
         ]);
 
         $this->postJson('/api/v1/shorts', [], [
@@ -138,6 +180,7 @@ describe('POST /api/v1/shorts', function () {
         ApiKey::factory()->create([
             'user_id' => $this->user->id,
             'key' => $key['hashed'],
+            'key_lookup' => $key['key_lookup'],
         ]);
 
         $this->postJson('/api/v1/shorts', [
@@ -147,5 +190,74 @@ describe('POST /api/v1/shorts', function () {
         ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('url_origin');
+    });
+
+    it('creates activity log when short is created', function () {
+        $key = ApiKey::generateKey();
+        ApiKey::factory()->create([
+            'user_id' => $this->user->id,
+            'key' => $key['hashed'],
+            'key_lookup' => $key['key_lookup'],
+        ]);
+
+        $this->postJson('/api/v1/shorts', [
+            'url_origin' => 'https://example.com',
+        ], [
+            'X-API-Key' => $key['plain'],
+        ])
+            ->assertCreated();
+
+        $this->assertDatabaseHas('activity_log', [
+            'description' => 'Short link created via API',
+            'event' => 'created',
+        ]);
+    });
+});
+
+describe('DELETE /api/v1/shorts/{id}', function () {
+    it('deletes a short link and returns 204', function () {
+        $short = Short::factory()->create(['user_id' => $this->user->id]);
+
+        $this->deleteJson("/api/v1/shorts/{$short->encrypted_id}", [], [
+            'X-API-Key' => $this->key['plain'],
+        ])
+            ->assertNoContent();
+
+        $this->assertDatabaseMissing('shorts', [
+            'id' => $short->id,
+        ]);
+    });
+
+    it('returns 404 when short does not exist', function () {
+        $encryptedId = encrypt('999999');
+
+        $this->deleteJson("/api/v1/shorts/{$encryptedId}", [], [
+            'X-API-Key' => $this->key['plain'],
+        ])
+            ->assertNotFound();
+    });
+
+    it('returns 404 when short belongs to another user', function () {
+        $otherUser = User::factory()->create();
+        $short = Short::factory()->create(['user_id' => $otherUser->id]);
+
+        $this->deleteJson("/api/v1/shorts/{$short->encrypted_id}", [], [
+            'X-API-Key' => $this->key['plain'],
+        ])
+            ->assertNotFound();
+    });
+
+    it('creates activity log when short is deleted', function () {
+        $short = Short::factory()->create(['user_id' => $this->user->id]);
+
+        $this->deleteJson("/api/v1/shorts/{$short->encrypted_id}", [], [
+            'X-API-Key' => $this->key['plain'],
+        ])
+            ->assertNoContent();
+
+        $this->assertDatabaseHas('activity_log', [
+            'description' => 'Short link deleted via API',
+            'event' => 'deleted',
+        ]);
     });
 });

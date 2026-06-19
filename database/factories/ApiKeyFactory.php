@@ -15,10 +15,13 @@ class ApiKeyFactory extends Factory
 
     public function definition(): array
     {
+        $key = ApiKey::generateKey();
+
         return [
             'user_id' => User::factory(),
             'name' => fake()->word(),
-            'key' => ApiKey::generateKey()['hashed'],
+            'key' => $key['hashed'],
+            'key_lookup' => $key['key_lookup'],
             'abilities' => null,
         ];
     }

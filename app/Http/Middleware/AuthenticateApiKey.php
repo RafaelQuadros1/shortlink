@@ -6,6 +6,7 @@ use App\Models\ApiKey;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -38,21 +39,28 @@ class AuthenticateApiKey
 
     private function resolveApiKey(string $key): ?ApiKey
     {
-        $legacyHash = hash('sha256', $key);
+        $keyLookup = hash('sha256', $key);
 
-        $candidate = ApiKey::where('key', $legacyHash)->first();
-        if ($candidate) {
-            return $candidate;
-        }
-
-        $candidates = ApiKey::where('key', 'like', '$%')->get();
-
-        foreach ($candidates as $candidate) {
-            if (Hash::check($key, $candidate->key)) {
+        return Cache::remember("api_key:{$keyLookup}", 60, function () use ($key, $keyLookup) {
+            $candidate = ApiKey::where('key_lookup', $keyLookup)->first();
+            if ($candidate) {
                 return $candidate;
             }
-        }
 
-        return null;
+            $legacyHash = hash('sha256', $key);
+            $candidate = ApiKey::where('key', $legacyHash)->first();
+            if ($candidate) {
+                return $candidate;
+            }
+
+            $candidates = ApiKey::where('key', 'like', '$%')->get();
+            foreach ($candidates as $candidate) {
+                if (Hash::check($key, $candidate->key)) {
+                    return $candidate;
+                }
+            }
+
+            return null;
+        });
     }
 }
