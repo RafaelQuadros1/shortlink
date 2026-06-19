@@ -53,11 +53,6 @@ Route::middleware('security.headers')->group(function () {
         Route::delete('/api-keys/{apiKey}', [SettingsController::class, 'destroyApiKey'])->name('api-keys.destroy');
     });
 
-    // Rate limit redirect endpoint to prevent abuse
-    Route::get('{short_code}', [ShortController::class, 'redirect'])
-        ->name('shorts.redirect')
-        ->middleware('throttle:300,1');
-
     Route::get('/auth/{provider}/redirect', [SocialAuthController::class, 'redirect'])
         ->name('social.redirect')
         ->middleware('throttle:30,1');
@@ -66,3 +61,7 @@ Route::middleware('security.headers')->group(function () {
         ->name('social.callback')
         ->middleware('throttle:30,1');
 });
+
+Route::get('{short_code}', [ShortController::class, 'redirect'])
+    ->name('shorts.redirect')
+    ->middleware('throttle:300,1');

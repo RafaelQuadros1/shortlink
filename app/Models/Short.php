@@ -12,14 +12,21 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
 
 #[Fillable('user_id', 'url_origin', 'short_code', 'expires_at')]
 class Short extends Model
 {
     /** @use HasFactory<ShortFactory> */
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $hidden = ['created_at', 'updated_at'];
+
+    protected static $logAttributes = ['url_origin', 'short_code', 'expires_at'];
+
+    protected static $logOnlyDirty = true;
+
+    protected static $submitEmptyLogs = false;
 
     protected function casts(): array
     {

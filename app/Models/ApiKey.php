@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
-#[Fillable(['user_id', 'name', 'key', 'abilities', 'expires_at'])]
+#[Fillable(['user_id', 'name', 'key', 'key_lookup', 'abilities', 'expires_at', 'last_used_at'])]
 #[Hidden(['key', 'id'])]
 class ApiKey extends Model
 {
@@ -39,6 +39,7 @@ class ApiKey extends Model
         return [
             'plain' => $plain,
             'hashed' => Hash::make($plain),
+            'key_lookup' => hash('sha256', $plain),
         ];
     }
 
